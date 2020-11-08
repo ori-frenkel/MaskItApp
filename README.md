@@ -15,23 +15,23 @@ Note: this app is a project made as a part of Android course at The Hebrew Unive
   3. Have fun.
   
 
-  <img src="https://github.com/ori-frenkel/MaskItApp/blob/master/Resources/Feature_Graphic.jpg" width="400" />
+  <img src="https://github.com/ori-frenkel/MaskItApp/blob/master/GooglePlayImages/Feature_Graphic.jpg" width="400" />
 
 
 
 # Preview
 <kbd>
-  <img align="left" src="https://github.com/ori-frenkel/MaskItApp/blob/master/Resources/pic2.JPG" width="400" />
+  <img align="left" src="https://github.com/ori-frenkel/MaskItApp/blob/master/GooglePlayImages/pic2.jpg" width="400" />
 </kbd>
 
 <kbd>
-  <img align="right" src="https://github.com/ori-frenkel/MaskItApp/blob/master/Resources/pic5.JPG" width="400" />
+  <img align="right" src="https://github.com/ori-frenkel/MaskItApp/blob/master/GooglePlayImages/pic5.jpg" width="400" />
 </kbd>
 
 <kbd>
-  <img align="left" src="https://github.com/ori-frenkel/MaskItApp/blob/master/Resources/pic7.JPG" width="400" />
+  <img align="left" src="https://github.com/ori-frenkel/MaskItApp/blob/master/GooglePlayImages/pic7.jpg" width="400" />
 </kbd>
 
 <kbd>
-  <img align="right" src="https://github.com/ori-frenkel/MaskItApp/blob/master/Resources/pic9.JPG" width="400" />
+  <img align="right" src="https://github.com/ori-frenkel/MaskItApp/blob/master/GooglePlayImages/pic9.jpg" width="400" />
 </kbd>
