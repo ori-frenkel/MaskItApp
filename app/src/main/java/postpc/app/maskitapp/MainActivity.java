@@ -7,7 +7,7 @@ import android.app.SearchableInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -33,13 +33,12 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.Toast;
-import org.apache.commons.io.*;
-import org.apache.commons.io.*;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -111,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
 
     Boolean landscape = false;
 
-    FaceDetector detector;
+
 
 
     @Override
@@ -266,20 +265,20 @@ public class MainActivity extends AppCompatActivity {
     private void setFaces() {
         loadingView = (GifImageView) findViewById(R.id.loading_gif_view);
         loadingView.setVisibility(View.VISIBLE);
-        FaceDetectorOptions highAccuracyOpts =
-                new FaceDetectorOptions.Builder()
-                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
-                        .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
-                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
-                        .build();
-        detector = FaceDetection.getClient();
+//        FaceDetectorOptions highAccuracyOpts =
+//                new FaceDetectorOptions.Builder()
+//                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+//                        .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
+//                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
+//                        .build();
+//        strap.detector = FaceDetection.getClient();
         imagePreview.buildDrawingCache();
         Bitmap bmap = imagePreview.getDrawingCache().copy(Bitmap.Config.ARGB_8888,true);
         strap.filteredImage1 = bmap.copy(Bitmap.Config.ARGB_8888,true);
         strap.filteredImage = bmap.copy(Bitmap.Config.ARGB_8888,true);
         final InputImage image = InputImage.fromBitmap(bmap, 0);
         Task<List<Face>> result =
-                detector.process(image)
+                strap.detector.process(image)
                         .addOnSuccessListener(
                                 new OnSuccessListener<List<Face>>() {
                                     @SuppressLint("ClickableViewAccessibility")
@@ -597,10 +596,10 @@ public class MainActivity extends AppCompatActivity {
                 saveOutputImage("temp");
                 strap.currentFilterNo = adapter.getCurrentFilter();
             }
-            if(detector != null){
-                detector.close();
-                detector = null;
-            }
+//            if(strap.detector != null){
+//                strap.detector.close();
+//                strap.detector = null;
+//            }
             // clearing everything
             if (strap.originalImage != null){
                 strap.originalImage.recycle();
@@ -728,8 +727,16 @@ public class MainActivity extends AppCompatActivity {
                             intent.setType("image/*");
                             startActivityForResult(intent, SELECT_GALLERY_IMAGE);
                         } else {
-                            Toast.makeText(getApplicationContext(),
-                                    "Permissions are not granted!", Toast.LENGTH_SHORT).show();
+                            Snackbar snackbar = Snackbar
+                                    .make(imagePreview, "Need this permission in order to take image from gallery!", Snackbar.LENGTH_LONG);
+                            // change background color and text color to fit the new design
+                            snackbar.setBackgroundTint(ContextCompat.getColor(
+                                    MainActivity.this,
+                                    R.color.dark_blue_gray));
+                            snackbar.setTextColor(ContextCompat.getColor(
+                                    MainActivity.this,
+                                    R.color.white));
+                            snackbar.show();
                         }
 
                     }
@@ -751,28 +758,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onPermissionsChecked(MultiplePermissionsReport report) {
                         if (report.areAllPermissionsGranted()) {
-                            Uri u = ExtraKt.saveImage(strap.finalImage, MainActivity.this, folderName);
+                            final Uri u = postpc.app.maskitapp.ExtraKt.saveImage(strap.finalImage, MainActivity.this, folderName);
                             strap.SavedUri = u;
                             final String path = ImageFilePath.getPath(MainActivity.this, u);
                             strap.LoadLandscapePath = path;
-                            Log.d("nop nop yep", folderName);
-                            String st = folderName;
-                            if ("MASKiT".equals(st)){
-                                Log.d("yep yep", folderName);
-                                Thread thread = new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-//                                        deleteTempFolder(strap.temp);
-                                    }
-                                });
-                                thread.start();
-                            }
-                            else {
-                                strap.temp = path;
-                            }
                             if (!TextUtils.isEmpty(path)) {
                                 Snackbar snackbar = Snackbar
-                                        .make(imagePreview, "Image saved to gallery!", Snackbar.LENGTH_LONG)
+                                        .make(imagePreview, "Image saved to gallery!",
+                                                Snackbar.LENGTH_LONG)
                                         .setAction("OPEN", new View.OnClickListener() {
                                             @Override
                                             public void onClick(View view) {
@@ -821,10 +814,11 @@ public class MainActivity extends AppCompatActivity {
 
     // opening image in default image viewer app
     private void openImage(String path) {
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
-        intent.setDataAndType(Uri.parse(path), "image/*");
-
+        intent.setDataAndType(Uri.fromFile(new File(path)), "image/*");
         startActivity(intent);
     }
 
@@ -885,7 +879,7 @@ public class MainActivity extends AppCompatActivity {
 
         bitmap.recycle();
     }
-
+//
 //    private void deleteTempFolder(String path)  {
 //        String folderPath =  path.substring(0, path.lastIndexOf("/"));
 //
@@ -905,24 +899,81 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
     private void onClickCamera(){
-        strap.loadimage = true;
-        String fileName = "imageToAlter";
-        String fileExtension = ".jpg";
-        File storageDirectory = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        try {
-            File imageFile = File.createTempFile(fileName, fileExtension, storageDirectory);
-            strap.currPhotoPath = imageFile.getAbsolutePath();
-            strap.LoadLandscapePath = strap.currPhotoPath;
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            Uri imageUri = FileProvider.getUriForFile(MainActivity.this,
-                    "postpc.app.maskitapp.fileprovider", imageFile);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-            startActivityForResult(intent, _requestCodeCamera);
-        } catch (IOException e) {
-            Log.e("ErrorTakePhotoBtn", "problem at create a temp file");
-            e.printStackTrace();
+        boolean _permission = checkCameraPermission(MainActivity.this);
+        if(_permission) {
+            strap.loadimage = true;
+            String fileName = "imageToAlter";
+            String fileExtension = ".jpg";
+            File storageDirectory = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            try {
+                File imageFile = File.createTempFile(fileName, fileExtension, storageDirectory);
+                strap.currPhotoPath = imageFile.getAbsolutePath();
+                strap.LoadLandscapePath = strap.currPhotoPath;
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                Uri imageUri = FileProvider.getUriForFile(MainActivity.this,
+                        "postpc.app.maskitapp.fileprovider", imageFile);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                startActivityForResult(intent, _requestCodeCamera);
+            } catch (IOException e) {
+                Log.e("ErrorTakePhotoBtn", "problem at create a temp file");
+                e.printStackTrace();
+            }
         }
 
+
+    }
+
+    private boolean checkCameraPermission(Context context) {
+        if (ContextCompat.checkSelfPermission( context, Manifest.permission.CAMERA ) !=
+                PackageManager.PERMISSION_GRANTED ){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 3);
+        }
+        if (ContextCompat.checkSelfPermission( context, Manifest.permission.READ_EXTERNAL_STORAGE )
+                != PackageManager.PERMISSION_GRANTED ){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 3);
+        }
+        if (ContextCompat.checkSelfPermission( context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED ){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 3);
+        }
+        if (ContextCompat.checkSelfPermission( context, Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission( context, Manifest.permission.READ_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission( context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        for(int i=0; i < grantResults.length; i++){
+            if(permissions[i].equals(Manifest.permission.CAMERA) && grantResults[i] != PackageManager.PERMISSION_GRANTED ||
+                    permissions[i].equals(Manifest.permission.READ_EXTERNAL_STORAGE) &&
+                            grantResults[i] != PackageManager.PERMISSION_GRANTED ||
+                    permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE) &&
+                            grantResults[i] != PackageManager.PERMISSION_GRANTED
+
+            ){
+                Snackbar snackbar = Snackbar
+                        .make(imagePreview, "Cant take image from camera without permission!", Snackbar.LENGTH_LONG);
+                // change background color and text color to fit the new design
+                snackbar.setBackgroundTint(ContextCompat.getColor(
+                        MainActivity.this,
+                        R.color.dark_blue_gray));
+                snackbar.setTextColor(ContextCompat.getColor(
+                        MainActivity.this,
+                        R.color.white));
+                snackbar.show();
+                return;
+            }
+            onClickCamera();
+        }
     }
 
     /** Taking picture directly from camera */

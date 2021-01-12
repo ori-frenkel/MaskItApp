@@ -6,6 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.net.Uri;
 
+import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceDetector;
+import com.google.mlkit.vision.face.FaceDetectorOptions;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +30,7 @@ public class Bootstrap extends Application {
 
     String LoadLandscapePath ;
     Integer currentFilterNo;
-
+    FaceDetector detector;
     List<Triplet<Rect, Integer, Canvas>> filters;
     List<TupleFace<Rect, Float>> _faces;
 
@@ -37,5 +41,12 @@ public class Bootstrap extends Application {
         filters = new ArrayList<>();
         _faces = new ArrayList<>();
         loadimage = false;
+        FaceDetectorOptions highAccuracyOpts =
+                new FaceDetectorOptions.Builder()
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
+                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
+                        .build();
+        detector = FaceDetection.getClient(highAccuracyOpts);
     };
 }
