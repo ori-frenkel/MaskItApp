@@ -35,3 +35,6 @@ Note: this app is a project made as a part of Android course at The Hebrew Unive
 <kbd>
   <img align="right" src="https://github.com/ori-frenkel/MaskItApp/blob/master/GooglePlayImages/pic9.jpg" width="200" />
 </kbd>
+
+# Link to download via playstore
+https://play.google.com/store/apps/details?id=com.app.maskit_app&hl=en_AU
